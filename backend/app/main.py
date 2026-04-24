@@ -1,33 +1,40 @@
+import os
+import sys
+
+# Thêm thư mục hiện tại vào sys.path để Python tìm thấy package 'app'
+sys.path.append(os.getcwd())
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import documents # Thêm dòng này
-app = FastAPI(title="Smart Knowledge Base Chatbot API")
+from app.api.routes import documents, chat
+from app.config import settings
 
-# Cấu hình CORS để Frontend (Vue) có thể gọi được Backend (FastAPI)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], # Trong thực tế sẽ giới hạn domain, nhưng demo thì để * cho tiện
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title=settings.APP_NAME,
+    version="1.0.0",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-app.include_router(documents.router, prefix="/api/v1")
+# ... (CORS logic giữ nguyên)
 
-@app.get("/")
+# Include các router
+app.include_router(documents.router, prefix=settings.API_V1_STR)
+app.include_router(chat.router, prefix=settings.API_V1_STR)
+
+@app.get("/", tags=["Root"])
 async def root():
-    return {"message": "Welcome to Smart Knowledge Base Chatbot API"}
+    return {
+        "message": f"Welcome to {settings.APP_NAME} API",
+        "docs": "/docs",
+        "version": "1.0.0"
+    }
 
-@app.get("/health")
+@app.get("/health", tags=["Root"])
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "healthy", "service": settings.APP_NAME}
 
 if __name__ == "__main__":
     import uvicorn
-    import os
-    import sys
-    
-    # Ép Python nhận diện thư mục hiện tại là gốc để tìm module 'app'
-    sys.path.append(os.getcwd())
-    
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+
+
