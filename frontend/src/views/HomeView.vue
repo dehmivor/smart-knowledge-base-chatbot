@@ -1,48 +1,59 @@
 <template>
-  <div class="chat-container">
-    <div class="chat-messages" ref="messageContainer">
-      <div v-if="messages.length === 0" class="welcome-screen">
-        <div class="robot-icon">🤖</div>
-        <h1>Tôi có thể giúp gì cho bạn?</h1>
-        <p>Hãy hỏi tôi bất cứ điều gì về tài liệu đã upload.</p>
+  <div class="chat-view">
+    <div class="chat-header">
+      <div class="chat-info">
+        <h2 class="title">RAG Chat Assistant</h2>
+        <p class="subtitle">AI-powered knowledge retrieval engine</p>
       </div>
+      <div class="chat-actions">
+        <button class="action-btn" @click="clearChat" title="Clear chat history">
+          Clear
+        </button>
+      </div>
+    </div>
 
-      <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
-        <div class="bubble">
-          <div class="text" v-html="renderMarkdown(msg.content)"></div>
+    <div class="chat-window" ref="scrollContainer">
+      <div v-if="messages.length === 0" class="welcome-container">
+        <div class="welcome-card">
+          <h1>How can I help you today?</h1>
+          <p>I can search through your uploaded documents and provide precise answers based on the content.</p>
           
-          <!-- Hiển thị nguồn nếu có -->
-          <div v-if="msg.sources && msg.sources.length > 0" class="sources">
-            <p class="source-title">📚 Nguồn tham khảo:</p>
-            <div class="source-list">
-              <span v-for="(src, i) in uniqueSources(msg.sources)" :key="i" class="source-tag">
-                {{ src }}
-              </span>
+          <div class="suggestion-grid">
+            <div 
+              v-for="(suggestion, i) in suggestions" 
+              :key="i" 
+              class="suggestion-item"
+              @click="useSuggestion(suggestion)"
+            >
+              {{ suggestion }}
             </div>
           </div>
         </div>
       </div>
 
-      <div v-if="isLoading" class="message assistant">
-        <div class="bubble typing">
-          <span></span><span></span><span></span>
+      <div class="messages-list">
+        <MessageBubble
+          v-for="(msg, index) in messages"
+          :key="index"
+          :role="msg.role"
+          :content="msg.content"
+          :sources="msg.sources"
+          :timestamp="msg.timestamp"
+        />
+        
+        <div v-if="isLoading" class="typing-bubble-wrapper">
+          <div class="avatar">AI</div>
+          <div class="typing-bubble">
+            <span></span><span></span><span></span>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="chat-input-area">
-      <div class="input-wrapper">
-        <textarea 
-          v-model="userInput" 
-          placeholder="Nhập câu hỏi tại đây..." 
-          @keydown.enter.prevent="sendMessage"
-          rows="1"
-          ref="chatInput"
-        ></textarea>
-        <button @click="sendMessage" :disabled="isLoading || !userInput.trim()">
-          <span v-if="!isLoading">🚀</span>
-          <span v-else>...</span>
-        </button>
+    <div class="chat-footer">
+      <div class="input-container">
+        <ChatInput :disabled="isLoading" @send="handleSendMessage" />
+        <p class="disclaimer">AI can make mistakes. Please verify important information with official sources.</p>
       </div>
     </div>
   </div>
@@ -51,202 +62,267 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import axios from 'axios'
-// Lưu ý: Bạn có thể cài thêm marked để render markdown đẹp hơn, tạm thời tôi dùng text thô
-const renderMarkdown = (text) => text.replace(/\n/g, '<br>')
+import MessageBubble from '@/components/chat/MessageBubble.vue'
+import ChatInput from '@/components/chat/ChatInput.vue'
 
 const API_CHAT = 'http://localhost:8000/api/v1/chat/'
+
 const messages = ref([])
-const userInput = ref('')
 const isLoading = ref(false)
-const messageContainer = ref(null)
+const scrollContainer = ref(null)
+
+const suggestions = [
+  "What is the company's leave policy?",
+  "Tell me about the onboarding process.",
+  "What are the technical standards for development?",
+  "How do I request a hardware upgrade?"
+]
 
 const scrollToBottom = async () => {
   await nextTick()
-  if (messageContainer.value) {
-    messageContainer.value.scrollTop = messageContainer.value.scrollHeight
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollTo({
+      top: scrollContainer.value.scrollHeight,
+      behavior: 'smooth'
+    })
   }
 }
 
-const uniqueSources = (sources) => {
-  return [...new Set(sources.map(s => s.filename))]
-}
-
-const sendMessage = async () => {
-  if (!userInput.value.trim() || isLoading.value) return
-
-  const userMsg = userInput.value
-  messages.value.push({ role: 'user', content: userMsg })
-  userInput.value = ''
+const handleSendMessage = async (text) => {
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  
+  messages.value.push({
+    role: 'user',
+    content: text,
+    timestamp
+  })
+  
   isLoading.value = true
   scrollToBottom()
 
   try {
-    const res = await axios.post(API_CHAT, { message: userMsg })
-    messages.value.push({ 
-      role: 'assistant', 
-      content: res.data.answer,
-      sources: res.data.sources
+    const response = await axios.post(API_CHAT, { message: text })
+    
+    messages.value.push({
+      role: 'assistant',
+      content: response.data.answer,
+      sources: response.data.sources,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     })
-  } catch (err) {
-    messages.value.push({ 
-      role: 'assistant', 
-      content: '❌ Có lỗi xảy ra: ' + (err.response?.data?.detail || err.message) 
+  } catch (error) {
+    console.error('Chat error:', error)
+    messages.value.push({
+      role: 'assistant',
+      content: "⚠️ **System Error**: I'm having trouble connecting to the backend. Please ensure the server is running.",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     })
   } finally {
     isLoading.value = false
     scrollToBottom()
   }
 }
+
+const useSuggestion = (text) => {
+  handleSendMessage(text)
+}
+
+const clearChat = () => {
+  if (confirm('Are you sure you want to clear the chat history?')) {
+    messages.value = []
+  }
+}
+
+onMounted(() => {
+  // Load initial welcome or history if needed
+})
 </script>
 
 <style scoped>
-.chat-container {
+.chat-view {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
+  position: relative;
 }
 
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 0;
+.chat-header {
+  padding: 20px 40px;
+  background: rgba(15, 15, 26, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
-  flex-direction: column;
-  gap: 25px;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
 }
 
-.welcome-screen {
-  text-align: center;
-  margin-top: 100px;
-  color: #a0a0b0;
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
 }
 
-.robot-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-}
-
-.message {
-  display: flex;
-  max-width: 85%;
-}
-
-.message.user {
-  align-self: flex-end;
-}
-
-.message.assistant {
-  align-self: flex-start;
-}
-
-.bubble {
-  padding: 15px 20px;
-  border-radius: 20px;
-  line-height: 1.5;
-  font-size: 1.05rem;
-}
-
-.user .bubble {
-  background: linear-gradient(135deg, #6c63ff, #00d2ff);
-  color: white;
-  border-bottom-right-radius: 4px;
-}
-
-.assistant .bubble {
-  background: #1a1a2e;
-  color: #e8e8e8;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom-left-radius: 4px;
-}
-
-.sources {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.source-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #6c63ff;
-  margin-bottom: 5px;
-}
-
-.source-tag {
-  display: inline-block;
-  background: rgba(108, 99, 255, 0.1);
-  color: #00d2ff;
+.subtitle {
   font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-right: 5px;
+  color: var(--color-text-secondary);
+  margin: 2px 0 0 0;
 }
 
-.chat-input-area {
-  padding: 20px 0;
-}
-
-.input-wrapper {
-  background: #16213e;
-  border-radius: 15px;
-  padding: 10px 15px;
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  padding: 0 15px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-textarea {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: white;
-  resize: none;
-  font-family: inherit;
-  font-size: 1rem;
-  outline: none;
-  max-height: 150px;
-}
-
-button {
-  background: #6c63ff;
-  border: none;
-  width: 45px;
-  height: 45px;
-  border-radius: 12px;
-  cursor: pointer;
+  justify-content: center;
   transition: all 0.2s;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
-button:hover:not(:disabled) {
-  transform: scale(1.05);
-  background: #00d2ff;
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--color-text-secondary);
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+  scroll-behavior: smooth;
 }
 
-/* Typing animation */
-.typing span {
-  width: 8px;
-  height: 8px;
-  background: #a0a0b0;
-  display: inline-block;
+.welcome-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome-card {
+  max-width: 600px;
+  text-align: center;
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bot-icon {
+  font-size: 4rem;
+  margin-bottom: 24px;
+}
+
+.welcome-card h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.welcome-card p {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 40px;
+}
+
+.suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.suggestion-item {
+  padding: 16px 20px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.suggestion-item:hover {
+  border-color: var(--color-accent-primary);
+  background: rgba(108, 99, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.typing-bubble-wrapper {
+  display: flex;
+  gap: 16px;
+  align-self: flex-start;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.typing-bubble {
+  background-color: var(--color-bg-secondary);
+  padding: 12px 20px;
+  border-radius: 20px;
+  border-top-left-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--color-border);
+}
+
+.typing-bubble span {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-text-secondary);
   border-radius: 50%;
-  margin: 0 2px;
   animation: bounce 1.4s infinite ease-in-out both;
 }
 
-.typing span:nth-child(1) { animation-delay: -0.32s; }
-.typing span:nth-child(2) { animation-delay: -0.16s; }
+.typing-bubble span:nth-child(1) { animation-delay: -0.32s; }
+.typing-bubble span:nth-child(2) { animation-delay: -0.16s; }
 
 @keyframes bounce {
   0%, 80%, 100% { transform: scale(0); }
   40% { transform: scale(1.0); }
+}
+
+.chat-footer {
+  padding: 20px 40px 40px;
+}
+
+.input-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.disclaimer {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-top: 12px;
+  opacity: 0.6;
 }
 </style>

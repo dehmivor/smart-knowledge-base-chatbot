@@ -1,53 +1,52 @@
 <template>
-  <div class="documents-container">
-    <header class="page-header">
-      <h1>🗄️ Quản lý tài liệu</h1>
-      <p>Tải lên các tài liệu PDF, DOCX hoặc TXT để AI học kiến thức.</p>
-    </header>
-
-    <div class="upload-section">
-      <div 
-        class="drop-zone" 
-        @dragover.prevent 
-        @drop.prevent="handleDrop"
-        @click="$refs.fileInput.click()"
-        :class="{ 'uploading': isUploading }"
-      >
-        <input 
-          type="file" 
-          ref="fileInput" 
-          hidden 
-          accept=".pdf,.docx,.txt" 
-          @change="handleFileSelect"
-        >
-        <div class="upload-icon">📤</div>
-        <div class="upload-text">
-          <p v-if="!isUploading">Kéo thả hoặc click để tải lên</p>
-          <p v-else>Đang xử lý tài liệu...</p>
+  <div class="documents-view">
+    <div class="view-header">
+      <div class="view-info">
+        <h2 class="title">Knowledge Base</h2>
+        <p class="subtitle">Upload and manage your company documents</p>
+      </div>
+      <div class="view-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ documents.length }}</span>
+          <span class="stat-label">Documents</span>
         </div>
       </div>
     </div>
 
-    <div class="documents-list">
-      <div class="list-header">
-        <h2>Danh sách tài liệu ({{ documents.length }})</h2>
-        <button @click="fetchDocuments" class="refresh-btn">🔄 Làm mới</button>
+    <div class="view-content">
+      <div class="upload-section">
+        <UploadZone 
+          :uploading="isUploading" 
+          :progress="uploadProgress"
+          @upload="handleUpload" 
+        />
       </div>
 
-      <div v-if="loading" class="loading-state">Đang tải danh sách...</div>
-      
-      <div v-else-if="documents.length === 0" class="empty-state">
-        Chưa có tài liệu nào. Hãy tải lên tài liệu đầu tiên!
-      </div>
-
-      <div v-else class="grid">
-        <div v-for="doc in documents" :key="doc.id" class="doc-card">
-          <div class="doc-icon">📄</div>
-          <div class="doc-info">
-            <h3 :title="doc.filename">{{ truncate(doc.filename) }}</h3>
-            <p>{{ doc.chunk_count }} chunks • {{ formatDate(doc.upload_date) }}</p>
+      <div class="list-section">
+        <div class="section-header">
+          <h3>Your Library</h3>
+          <div class="search-bar">
+            <input type="text" v-model="searchQuery" placeholder="Search documents...">
           </div>
-          <button @click="deleteDoc(doc.id)" class="delete-btn">🗑️</button>
+        </div>
+
+        <div v-if="filteredDocuments.length > 0" class="documents-list">
+          <DocumentCard 
+            v-for="doc in filteredDocuments" 
+            :key="doc.id" 
+            :doc="doc"
+            @delete="confirmDelete"
+          />
+        </div>
+
+        <div v-else-if="!isLoading" class="empty-state">
+          <p v-if="searchQuery">No documents match your search.</p>
+          <p v-else>No documents uploaded yet. Start by dropping a file above.</p>
+        </div>
+
+        <div v-if="isLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading library...</p>
         </div>
       </div>
     </div>
@@ -55,205 +54,221 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import UploadZone from '@/components/documents/UploadZone.vue'
+import DocumentCard from '@/components/documents/DocumentCard.vue'
 
-const API_BASE = 'http://localhost:8000/api/v1/documents'
+const API_DOCS = 'http://localhost:8000/api/v1/documents/'
+
 const documents = ref([])
-const loading = ref(false)
+const isLoading = ref(false)
 const isUploading = ref(false)
-const fileInput = ref(null)
+const uploadProgress = ref(0)
+const searchQuery = ref('')
+
+const filteredDocuments = computed(() => {
+  if (!searchQuery.value) return documents.value
+  const query = searchQuery.value.toLowerCase()
+  return documents.value.filter(doc => 
+    doc.filename.toLowerCase().includes(query)
+  )
+})
 
 const fetchDocuments = async () => {
-  loading.value = true
+  isLoading.value = true
   try {
-    const res = await axios.get(API_BASE + '/')
+    const res = await axios.get(API_DOCS)
     documents.value = res.data
   } catch (err) {
-    alert('Lỗi khi tải danh sách: ' + err.message)
+    console.error('Failed to fetch documents:', err)
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
 
-const handleFileSelect = (e) => {
-  const file = e.target.files[0]
-  if (file) uploadFile(file)
-}
-
-const handleDrop = (e) => {
-  const file = e.dataTransfer.files[0]
-  if (file) uploadFile(file)
-}
-
-const uploadFile = async (file) => {
-  const formData = new FormData()
-  formData.append('file', file)
-  
+const handleUpload = async (files) => {
   isUploading.value = true
+  uploadProgress.value = 0
+  
+  const formData = new FormData()
+  files.forEach(file => {
+    formData.append('files', file)
+  })
+
   try {
-    await axios.post(API_BASE + '/upload', formData)
-    await fetchDocuments()
+    // Simulated progress for demo
+    const interval = setInterval(() => {
+      if (uploadProgress.value < 90) uploadProgress.value += 10
+    }, 200)
+
+    await axios.post(`${API_DOCS}upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    
+    clearInterval(interval)
+    uploadProgress.value = 100
+    
+    setTimeout(() => {
+      isUploading.value = false
+      fetchDocuments()
+    }, 500)
   } catch (err) {
-    alert('Lỗi khi upload: ' + (err.response?.data?.detail || err.message))
-  } finally {
+    console.error('Upload failed:', err)
+    alert('Upload failed: ' + (err.response?.data?.detail || err.message))
     isUploading.value = false
   }
 }
 
-const deleteDoc = async (id) => {
-  if (!confirm('Bạn có chắc muốn xóa tài liệu này?')) return
-  try {
-    await axios.delete(`${API_BASE}/${id}`)
-    await fetchDocuments()
-  } catch (err) {
-    alert('Lỗi khi xóa: ' + err.message)
+const confirmDelete = async (id) => {
+  if (confirm('Are you sure you want to delete this document? This will also remove its associated vectors from the database.')) {
+    try {
+      await axios.delete(`${API_DOCS}${id}`)
+      fetchDocuments()
+    } catch (err) {
+      console.error('Delete failed:', err)
+      alert('Failed to delete document.')
+    }
   }
 }
 
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-}
-
-const truncate = (str) => str.length > 25 ? str.substring(0, 22) + '...' : str
-
-onMounted(fetchDocuments)
+onMounted(() => {
+  fetchDocuments()
+})
 </script>
 
 <style scoped>
-.documents-container {
+.documents-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.view-header {
+  padding: 20px 40px;
+  background: rgba(15, 15, 26, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 2px 0 0 0;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-accent-primary);
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-secondary);
+}
+
+.view-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
-  color: #e8e8e8;
+  width: 100%;
 }
 
-.page-header {
-  margin-bottom: 40px;
-  text-align: center;
-}
-
-.page-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  background: linear-gradient(135deg, #6c63ff, #00d2ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.upload-section {
-  margin-bottom: 50px;
-}
-
-.drop-zone {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 40px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.drop-zone:hover {
-  border-color: #6c63ff;
-  background: rgba(108, 99, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-.uploading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.upload-icon {
-  font-size: 3rem;
-  margin-bottom: 15px;
-}
-
-.upload-text p {
-  font-size: 1.1rem;
-  color: #a0a0b0;
-}
-
-.list-header {
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.refresh-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #a0a0b0;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.doc-card {
-  background: #1a1a2e;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 20px;
+.search-bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 15px;
-  position: relative;
-  transition: transform 0.2s;
 }
 
-.doc-card:hover {
-  transform: scale(1.02);
-  border-color: rgba(108, 99, 255, 0.3);
-}
-
-.doc-icon {
-  font-size: 2rem;
-}
-
-.doc-info h3 {
-  font-size: 1rem;
-  margin: 0 0 5px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.doc-info p {
-  font-size: 0.85rem;
-  color: #a0a0b0;
-  margin: 0;
-}
-
-.delete-btn {
+.search-icon {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
+  left: 12px;
+  font-size: 0.9rem;
+  opacity: 0.5;
 }
 
-.doc-card:hover .delete-btn {
-  opacity: 1;
+.search-bar input {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+  width: 240px;
+  transition: all 0.2s;
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  width: 300px;
+}
+
+.documents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .empty-state, .loading-state {
   text-align: center;
-  padding: 40px;
-  color: #a0a0b0;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 12px;
+  padding: 60px 0;
+  color: var(--color-text-secondary);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.2;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.05);
+  border-top-color: var(--color-accent-primary);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>

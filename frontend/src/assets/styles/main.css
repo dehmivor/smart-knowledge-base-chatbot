@@ -1,0 +1,60 @@
+:root {
+  /* Color Palette - Dark Theme Professional */
+  --color-bg-primary: #0f0f1a;        /* Deep navy background */
+  --color-bg-secondary: #1a1a2e;      /* Card background */
+  --color-bg-tertiary: #16213e;       /* Sidebar background */
+  --color-accent-primary: #6c63ff;    /* Purple accent */
+  --color-accent-secondary: #00d2ff;  /* Cyan accent */
+  --color-accent-gradient: linear-gradient(135deg, #6c63ff, #00d2ff);
+  --color-text-primary: #e8e8e8;
+  --color-text-secondary: #a0a0b0;
+  --color-success: #00e676;
+  --color-error: #ff5252;
+  --color-border: rgba(255, 255, 255, 0.08);
+
+  /* Typography */
+  --font-primary: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(20px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
