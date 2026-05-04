@@ -55,37 +55,26 @@ const formatDate = (dateStr) => {
 
 <style scoped>
 .document-card {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 16px;
+  background: var(--color-bg-primary);
+  border: none;
+  padding: 20px 0;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   transition: all 0.2s;
 }
 
 .document-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.03);
+  opacity: 0.7;
 }
 
-.doc-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
+.doc-type-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  width: 40px;
   flex-shrink: 0;
 }
-
-.doc-icon.pdf { color: #ff5252; background: rgba(255, 82, 82, 0.1); }
-.doc-icon.word { color: #2b579a; background: rgba(43, 87, 154, 0.1); }
-.doc-icon.text { color: #a0a0b0; background: rgba(160, 160, 176, 0.1); }
 
 .doc-info {
   flex: 1;
@@ -94,8 +83,9 @@ const formatDate = (dateStr) => {
 
 .doc-name {
   margin: 0 0 4px 0;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -105,8 +95,10 @@ const formatDate = (dateStr) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .separator {
@@ -114,27 +106,32 @@ const formatDate = (dateStr) => {
 }
 
 .badge {
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  border-radius: 6px;
+  font-size: 0.6rem;
+  padding: 2px 0;
   text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
-.badge.indexed { background: rgba(0, 230, 118, 0.1); color: var(--color-success); }
-.badge.processing { background: rgba(0, 210, 255, 0.1); color: var(--color-accent-secondary); }
-.badge.failed { background: rgba(255, 82, 82, 0.1); color: var(--color-error); }
+.badge.indexed { color: var(--color-success); }
+.badge.processing { color: var(--color-text-secondary); }
+.badge.failed { color: var(--color-error); }
 
 .delete-btn {
   background: transparent;
-  border: 1px solid var(--color-border);
+  border: none;
   color: var(--color-text-secondary);
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  padding: 0;
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.2s;
 }
+
+.delete-btn:hover {
+  color: var(--color-error);
+}
+
 </style>

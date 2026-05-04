@@ -57,62 +57,57 @@ const handleFileSelect = (e) => {
 
 <style scoped>
 .upload-zone {
-  border: 2px dashed var(--color-border);
-  border-radius: 20px;
-  padding: 40px;
+  border: 1px solid var(--color-border);
+  padding: 60px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
-  transition: all 0.3s ease;
-  min-height: 240px;
+  background: var(--color-bg-secondary);
+  transition: all 0.2s ease;
+  min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .upload-zone.is-dragging {
-  border-color: var(--color-accent-primary);
-  background: rgba(108, 99, 255, 0.05);
-  transform: scale(1.01);
+  border-color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
 }
 
 .upload-zone.is-uploading {
   border-style: solid;
-  border-color: var(--color-border);
-}
-
-.upload-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 20px;
-  color: var(--color-accent-primary);
-  opacity: 0.8;
 }
 
 .upload-content h3 {
-  margin-bottom: 8px;
-  font-size: 1.25rem;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .upload-content p {
   color: var(--color-text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: 24px;
+  font-size: 0.75rem;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .select-btn {
   display: inline-block;
-  background: var(--color-accent-primary);
-  color: white;
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
   padding: 10px 24px;
-  border-radius: 12px;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .select-btn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
+  opacity: 0.8;
 }
 
 .uploading-content {
@@ -121,10 +116,10 @@ const handleFileSelect = (e) => {
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(108, 99, 255, 0.1);
-  border-top-color: var(--color-accent-primary);
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-text-primary);
   border-radius: 50%;
   margin: 0 auto 20px;
   animation: spin 1s linear infinite;
@@ -136,16 +131,16 @@ const handleFileSelect = (e) => {
 
 .progress-bar {
   width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  margin: 15px 0;
+  height: 1px;
+  background: var(--color-border);
+  margin: 20px 0;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--color-accent-gradient);
+  background: var(--color-text-primary);
   transition: width 0.3s ease;
 }
+
 </style>

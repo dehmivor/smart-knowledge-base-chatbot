@@ -65,20 +65,17 @@ onMounted(() => {
 
 <style scoped>
 .chat-input-wrapper {
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 12px 16px;
+  background-color: transparent;
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 0;
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
 
 .chat-input-wrapper.focused {
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 4px 25px rgba(108, 99, 255, 0.15);
+  border-color: var(--color-text-primary);
 }
 
 textarea {
@@ -97,46 +94,37 @@ textarea {
 
 textarea::placeholder {
   color: var(--color-text-secondary);
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .send-button {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--color-accent-gradient);
+  background: transparent;
   border: none;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--color-text-primary);
+  padding: 8px 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.2s;
   flex-shrink: 0;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .send-button:hover:not(:disabled) {
-  transform: scale(1.05) translateY(-2px);
-  filter: brightness(1.1);
+  opacity: 0.7;
 }
 
 .send-button:disabled {
-  opacity: 0.3;
+  opacity: 0.1;
   cursor: not-allowed;
-  filter: grayscale(1);
-}
-
-.send-button svg {
-  width: 20px;
-  height: 20px;
 }
 
 .loader {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-text-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -144,4 +132,5 @@ textarea::placeholder {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
 </style>

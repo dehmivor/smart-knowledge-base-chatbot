@@ -59,15 +59,9 @@ const uniqueSources = computed(() => {
 <style scoped>
 .message-bubble-wrapper {
   display: flex;
-  gap: 16px;
-  max-width: 85%;
-  margin-bottom: 8px;
-  animation: slideUp 0.4s ease-out;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  gap: 20px;
+  max-width: 90%;
+  margin-bottom: 24px;
 }
 
 .message-bubble-wrapper.user {
@@ -80,79 +74,62 @@ const uniqueSources = computed(() => {
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
   color: var(--color-text-secondary);
-  flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .bubble-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .bubble {
-  padding: 16px 20px;
-  border-radius: 20px;
+  padding: 0;
   position: relative;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.7;
 }
 
 .user .bubble {
-  background: var(--color-accent-gradient);
-  color: white;
-  border-top-right-radius: 4px;
-  box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+  color: var(--color-text-primary);
+  text-align: right;
 }
 
 .assistant .bubble {
-  background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  border-top-left-radius: 4px;
+}
+
+.content :deep(strong) {
+  font-weight: 700;
 }
 
 .content :deep(code) {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--color-bg-tertiary);
   padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.9em;
+  color: var(--color-text-primary);
 }
 
 .sources-section {
-  margin-top: 16px;
+  margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.sources-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.sources-header .icon {
-  font-size: 0.8rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .sources-header .label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--color-accent-secondary);
+  letter-spacing: 1px;
+  color: var(--color-text-secondary);
+  display: block;
+  margin-bottom: 8px;
 }
 
 .sources-list {
@@ -162,28 +139,28 @@ const uniqueSources = computed(() => {
 }
 
 .source-tag {
-  background-color: rgba(0, 210, 255, 0.1);
-  color: var(--color-accent-secondary);
+  background-color: transparent;
+  color: var(--color-text-secondary);
   font-size: 0.7rem;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 210, 255, 0.1);
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
   cursor: help;
   transition: all 0.2s;
 }
 
 .source-tag:hover {
-  background-color: rgba(0, 210, 255, 0.2);
-  transform: translateY(-1px);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 .timestamp {
-  font-size: 0.7rem;
-  color: var(--color-text-secondary);
-  margin: 0 10px;
+  font-size: 0.65rem;
+  color: #ccc;
+  font-weight: 400;
 }
 
 .user .timestamp {
   text-align: right;
 }
+
 </style>

@@ -29,22 +29,18 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f1a 100%);
+  background: var(--color-bg-primary);
 }
 
-/* Page transitions */
+/* Page transitions - Subtle fade */
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
+.page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
 }
+
 </style>

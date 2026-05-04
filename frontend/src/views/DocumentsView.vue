@@ -112,6 +112,7 @@ const handleUpload = async (files) => {
     setTimeout(() => {
       isUploading.value = false
       fetchDocuments()
+      window.dispatchEvent(new CustomEvent('document-updated'))
     }, 500)
   } catch (err) {
     console.error('Upload failed:', err)
@@ -125,6 +126,7 @@ const confirmDelete = async (id) => {
     try {
       await axios.delete(`${API_DOCS}${id}`)
       fetchDocuments()
+      window.dispatchEvent(new CustomEvent('document-updated'))
     } catch (err) {
       console.error('Delete failed:', err)
       alert('Failed to delete document.')
@@ -142,41 +144,40 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background-color: var(--color-bg-primary);
 }
 
 .view-header {
-  padding: 20px 40px;
-  background: rgba(15, 15, 26, 0.8);
-  backdrop-filter: blur(10px);
+  padding: 30px 60px;
   border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 10;
 }
 
 .title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .subtitle {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--color-text-secondary);
-  margin: 2px 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
 }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+.view-stats {
+  text-align: right;
 }
 
 .stat-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-accent-primary);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-text-primary);
 }
 
 .stat-label {
@@ -184,91 +185,82 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--color-text-secondary);
+  margin-left: 8px;
 }
 
 .view-content {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-  max-width: 1000px;
+  padding: 60px;
+  max-width: 900px;
   margin: 0 auto;
   width: 100%;
+}
+
+.upload-section {
+  margin-bottom: 60px;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .section-header h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.search-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  font-size: 0.9rem;
-  opacity: 0.5;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .search-bar input {
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 8px 12px;
-  color: white;
-  font-size: 0.9rem;
-  width: 240px;
-  transition: all 0.2s;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  padding: 8px 0;
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  width: 200px;
+  transition: all 0.3s;
 }
 
 .search-bar input:focus {
   outline: none;
-  border-color: var(--color-accent-primary);
-  width: 300px;
+  border-color: var(--color-text-primary);
+  width: 260px;
 }
 
 .documents-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1px;
+  background-color: var(--color-border);
+  border: 1px solid var(--color-border);
 }
 
 .empty-state, .loading-state {
   text-align: center;
-  padding: 60px 0;
+  padding: 80px 0;
   color: var(--color-text-secondary);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-  opacity: 0.2;
+  font-size: 0.85rem;
 }
 
 .spinner {
-  width: 30px;
-  height: 30px;
-  border: 2px solid rgba(255, 255, 255, 0.05);
-  border-top-color: var(--color-accent-primary);
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--color-text-primary);
   border-radius: 50%;
-  margin: 0 auto 16px;
+  margin: 0 auto 20px;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
 </style>

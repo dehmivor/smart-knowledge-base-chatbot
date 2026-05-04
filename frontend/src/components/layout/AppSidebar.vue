@@ -13,6 +13,18 @@
       </router-link>
     </nav>
 
+    <div v-if="documents.length > 0" class="knowledge-section">
+      <h3 class="section-title">Active Knowledge</h3>
+      <div class="knowledge-list">
+        <div v-for="doc in documents.slice(0, 5)" :key="doc.id" class="knowledge-item">
+          {{ doc.filename }}
+        </div>
+        <div v-if="documents.length > 5" class="knowledge-more">
+          + {{ documents.length - 5 }} more
+        </div>
+      </div>
+    </div>
+
     <div class="sidebar-footer">
       <div class="status-indicator">
         <span class="status-text">System Online</span>
@@ -21,101 +33,137 @@
   </aside>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+const documents = ref([])
+
+const fetchDocuments = async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/v1/documents/')
+    documents.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch documents in sidebar:', err)
+  }
+}
+
+onMounted(() => {
+  fetchDocuments()
+  // Refresh occasionally or on an event
+  window.addEventListener('document-updated', fetchDocuments)
+})
+</script>
+
 <style scoped>
 .app-sidebar {
-  width: 260px;
-  background-color: var(--color-bg-tertiary);
+  width: 240px;
+  background-color: var(--color-bg-secondary);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 40px 24px;
   z-index: 100;
 }
 
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 48px;
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--color-accent-primary);
+  margin-bottom: 60px;
+  padding-left: 16px;
 }
 
 .logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: var(--color-accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--color-text-primary);
 }
 
 .nav-menu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  gap: 4px;
+  margin-bottom: 40px;
 }
 
 .nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   padding: 12px 16px;
   text-decoration: none;
   color: var(--color-text-secondary);
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  border-radius: 0;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
   font-weight: 500;
+  border-left: 2px solid transparent;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.03);
   color: var(--color-text-primary);
 }
 
 .nav-item.router-link-active {
-  background: rgba(108, 99, 255, 0.1);
-  color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+  font-weight: 700;
+  border-left: 2px solid var(--color-text-primary);
+}
+
+.knowledge-section {
+  padding: 0 16px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.section-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.knowledge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.knowledge-item {
+  font-size: 0.75rem;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+}
+
+.knowledge-more {
+  font-size: 0.65rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-top: 4px;
 }
 
 .sidebar-footer {
   margin-top: auto;
-  padding-top: 24px;
-  border-top: 1px solid var(--color-border);
+  padding: 24px 16px 0;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  background-color: var(--color-success);
-  border-radius: 50%;
-}
-
-.pulse {
-  box-shadow: 0 0 0 rgba(0, 230, 118, 0.4);
-  animation: pulse 2s infinite;
 }
 
 .status-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-@keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 </style>
+

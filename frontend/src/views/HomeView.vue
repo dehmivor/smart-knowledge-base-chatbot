@@ -2,12 +2,13 @@
   <div class="chat-view">
     <div class="chat-header">
       <div class="chat-info">
-        <h2 class="title">RAG Chat Assistant</h2>
-        <p class="subtitle">AI-powered knowledge retrieval engine</p>
+        <h2 class="title">Chat Assistant</h2>
+        <p class="subtitle" v-if="documentCount > 0">Searching through {{ documentCount }} documents</p>
+        <p class="subtitle" v-else>Upload documents to start searching</p>
       </div>
       <div class="chat-actions">
-        <button class="action-btn" @click="clearChat" title="Clear chat history">
-          Clear
+        <button class="action-btn" @click="clearChat">
+          Clear Chat
         </button>
       </div>
     </div>
@@ -15,10 +16,17 @@
     <div class="chat-window" ref="scrollContainer">
       <div v-if="messages.length === 0" class="welcome-container">
         <div class="welcome-card">
-          <h1>How can I help you today?</h1>
-          <p>I can search through your uploaded documents and provide precise answers based on the content.</p>
+          <h1>How can I help you?</h1>
+          <p v-if="documentCount > 0">
+            I'm ready to answer questions based on the <strong>{{ documentCount }}</strong> documents 
+            currently in your knowledge base.
+          </p>
+          <p v-else>
+            Welcome! Please upload some documents to the <strong>Knowledge Base</strong> 
+            so I có thể hỗ trợ bạn tra cứu thông tin.
+          </p>
           
-          <div class="suggestion-grid">
+          <div v-if="documentCount > 0" class="suggestion-grid">
             <div 
               v-for="(suggestion, i) in suggestions" 
               :key="i" 
@@ -70,6 +78,7 @@ const API_CHAT = 'http://localhost:8000/api/v1/chat/'
 const messages = ref([])
 const isLoading = ref(false)
 const scrollContainer = ref(null)
+const documentCount = ref(0)
 
 const suggestions = [
   "What is the company's leave policy?",
@@ -77,6 +86,15 @@ const suggestions = [
   "What are the technical standards for development?",
   "How do I request a hardware upgrade?"
 ]
+
+const fetchDocumentCount = async () => {
+  try {
+    const res = await axios.get('http://localhost:8000/api/v1/documents/')
+    documentCount.value = res.data.length
+  } catch (err) {
+    console.error('Failed to fetch document count:', err)
+  }
+}
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -133,7 +151,7 @@ const clearChat = () => {
 }
 
 onMounted(() => {
-  // Load initial welcome or history if needed
+  fetchDocumentCount()
 })
 </script>
 
@@ -142,58 +160,53 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  position: relative;
+  background-color: var(--color-bg-primary);
 }
 
 .chat-header {
-  padding: 20px 40px;
-  background: rgba(15, 15, 26, 0.8);
-  backdrop-filter: blur(10px);
+  padding: 30px 60px;
   border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 10;
 }
 
 .title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .subtitle {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--color-text-secondary);
-  margin: 2px 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
 }
 
 .action-btn {
   background: transparent;
-  border: 1px solid var(--color-border);
-  padding: 0 15px;
-  height: 36px;
-  border-radius: 10px;
+  border: none;
+  padding: 0;
   color: var(--color-text-secondary);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.2s;
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 
 .chat-window {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
-  scroll-behavior: smooth;
+  padding: 60px;
 }
 
 .welcome-container {
@@ -204,99 +217,67 @@ onMounted(() => {
 }
 
 .welcome-card {
-  max-width: 600px;
+  max-width: 500px;
   text-align: center;
-  animation: fadeIn 0.8s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.bot-icon {
-  font-size: 4rem;
-  margin-bottom: 24px;
 }
 
 .welcome-card h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 16px;
-  letter-spacing: -1px;
-}
-
-.welcome-card p {
-  font-size: 1.1rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 40px;
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 24px;
+  color: var(--color-text-primary);
+  letter-spacing: -0.5px;
 }
 
 .suggestion-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 40px;
 }
 
 .suggestion-item {
-  padding: 16px 20px;
-  background: var(--color-bg-secondary);
+  padding: 12px 20px;
+  background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
+  transition: all 0.2s ease;
+  text-align: center;
+  color: var(--color-text-secondary);
 }
 
 .suggestion-item:hover {
-  border-color: var(--color-accent-primary);
-  background: rgba(108, 99, 255, 0.05);
-  transform: translateY(-2px);
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
 }
 
 .messages-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  max-width: 1000px;
+  gap: 40px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
 .typing-bubble-wrapper {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
   align-self: flex-start;
-  animation: fadeIn 0.3s ease-out;
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
 }
 
 .typing-bubble {
-  background-color: var(--color-bg-secondary);
-  padding: 12px 20px;
-  border-radius: 20px;
-  border-top-left-radius: 4px;
   display: flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid var(--color-border);
+  padding-left: 0;
 }
 
 .typing-bubble span {
-  width: 6px;
-  height: 6px;
-  background-color: var(--color-text-secondary);
+  width: 4px;
+  height: 4px;
+  background-color: var(--color-border);
   border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out both;
 }
@@ -310,19 +291,22 @@ onMounted(() => {
 }
 
 .chat-footer {
-  padding: 20px 40px 40px;
+  padding: 40px 60px;
 }
 
 .input-container {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
 .disclaimer {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: var(--color-text-secondary);
   text-align: center;
-  margin-top: 12px;
-  opacity: 0.6;
+  margin-top: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.5;
 }
+
 </style>
