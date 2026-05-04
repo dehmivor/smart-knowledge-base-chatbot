@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     CHAT_MODEL: str = "gpt-4o-mini"
     
     # Vector DB (Milvus)
-    MILVUS_URI: str = "./data/milvus_demo.db"
+    MILVUS_URI: str = os.path.join(os.getcwd(), "milvus_demo.db")
     COLLECTION_NAME: str = "document_chunks"
     
     # Storage

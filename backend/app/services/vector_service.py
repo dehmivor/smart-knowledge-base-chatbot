@@ -4,28 +4,33 @@ import uuid
 
 class VectorService:
     def __init__(self):
-        # Khởi tạo Milvus Lite (lưu vào file cục bộ)
-        self.client = MilvusClient(settings.MILVUS_URI)
+        # Khởi tạo lười: không tạo client ngay lập tức
+        self._client = None
         self.collection_name = settings.COLLECTION_NAME
-        self._ensure_collection()
+
+    @property
+    def client(self):
+        """Tự động khởi tạo client khi được gọi tới lần đầu"""
+        if self._client is None:
+            self._client = MilvusClient(settings.MILVUS_URI)
+            self._ensure_collection()
+        return self._client
 
     def _ensure_collection(self):
         """Đảm bảo Collection tồn tại trong Milvus"""
-        if not self.client.has_collection(self.collection_name):
-            # Định nghĩa Schema
-            schema = self.client.create_schema(
+        # Dùng self._client trực tiếp để tránh vòng lặp đệ quy
+        if not self._client.has_collection(self.collection_name):
+            schema = self._client.create_schema(
                 auto_id=False,
                 enable_dynamic_field=True,
             )
             
-            # Thêm các field
             schema.add_field(field_name="id", datatype=DataType.VARCHAR, is_primary=True, max_length=100)
             schema.add_field(field_name="document_id", datatype=DataType.INT64)
-            schema.add_field(field_name="vector", datatype=DataType.FLOAT_VECTOR, dim=1536) # dim=1536 cho OpenAI
+            schema.add_field(field_name="vector", datatype=DataType.FLOAT_VECTOR, dim=1536)
             schema.add_field(field_name="text", datatype=DataType.VARCHAR, max_length=65535)
             
-            # Cài đặt Index để tìm kiếm nhanh
-            index_params = self.client.prepare_index_params()
+            index_params = self._client.prepare_index_params()
             index_params.add_index(
                 field_name="vector",
                 index_type="IVF_FLAT",
@@ -33,12 +38,11 @@ class VectorService:
                 params={"nlist": 128}
             )
             
-            self.client.create_collection(
+            self._client.create_collection(
                 collection_name=self.collection_name,
                 schema=schema,
                 index_params=index_params
             )
-            print(f"Đã tạo collection: {self.collection_name}")
 
     def insert_chunks(self, document_id: int, chunks: list, vectors: list, filename: str):
         """Chèn các đoạn văn bản và vectors vào Milvus"""
@@ -71,7 +75,6 @@ class VectorService:
             limit=limit,
             output_fields=["text", "filename", "document_id"]
         )
-        # Format lại kết quả trả về cho gọn
         formatted_results = []
         if results and len(results) > 0:
             for res in results[0]:
