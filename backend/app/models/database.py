@@ -22,6 +22,23 @@ class DocumentMetadata(Base):
     chunk_count = Column(Integer)
     upload_date = Column(DateTime, default=datetime.datetime.utcnow)
 
+class CronJob(Base):
+    __tablename__ = "cron_jobs"
+    id = Column(String, primary_key=True)
+    status = Column(String, default="pending") # pending, processing, completed, failed
+    last_run = Column(DateTime)
+    lock_until = Column(DateTime)
+    retry_count = Column(Integer, default=0)
+
+class CronJobLog(Base):
+    __tablename__ = "cron_job_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(String)
+    status = Column(String)
+    message = Column(String)
+    start_time = Column(DateTime)
+    end_time = Column(DateTime)
+
 # Tạo bảng trong database
 Base.metadata.create_all(bind=engine)
 

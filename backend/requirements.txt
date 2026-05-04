@@ -12,3 +12,4 @@ pymilvus[milvus_lite]
 openai
 langchain
 langchain-openai
+apscheduler

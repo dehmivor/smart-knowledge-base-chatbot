@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import documents, chat
 from app.config import settings
+from app.core.scheduler import start_scheduler
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -20,6 +21,16 @@ app = FastAPI(
 # Include các router
 app.include_router(documents.router, prefix=settings.API_V1_STR)
 app.include_router(chat.router, prefix=settings.API_V1_STR)
+
+@app.on_event("startup")
+async def startup_event():
+    # Khởi chạy scheduler khi app bắt đầu
+    app.state.scheduler = start_scheduler()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # Dừng scheduler khi app tắt
+    app.state.scheduler.shutdown()
 
 @app.get("/", tags=["Root"])
 async def root():
