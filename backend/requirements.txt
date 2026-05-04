@@ -8,7 +8,7 @@ unstructured[all-docs]
 pydantic-settings
 python-magic-bin; platform_system == 'Windows'
 python-magic; platform_system != 'Windows'
-pymilvus
+pymilvus[milvus_lite]
 openai
 langchain
 langchain-openai
